@@ -98,6 +98,35 @@ def read_account(account_id):
 
 
 ############################################################
+# Account UPDATE endpoint
+############################################################
+@app.route("/accounts/<account_id>", methods=["PUT"])
+def update_account(account_id):
+    """Updates an existing account"""
+    if account_id not in ACCOUNTS:
+        return abort(
+            status.HTTP_404_NOT_FOUND,
+            "Account does not exist",
+        )
+
+    account_data = request.get_json()
+
+    if not account_data:
+        return abort(
+            status.HTTP_400_BAD_REQUEST,
+            "Missing account data",
+        )
+
+    if "name" in account_data:
+        ACCOUNTS[account_id]["name"] = account_data["name"]
+
+    if "email" in account_data:
+        ACCOUNTS[account_id]["email"] = account_data["email"]
+
+    return jsonify(ACCOUNTS[account_id]), status.HTTP_200_OK
+
+
+############################################################
 # Existing Counter endpoints
 ############################################################
 @app.route("/counters", methods=["GET"])

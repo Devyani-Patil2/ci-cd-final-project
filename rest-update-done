@@ -1,0 +1,10 @@
+curl.exe -i -X PUT http://127.0.0.1:5000/accounts/1001 -H "Content-Type: application/json" -d "{\"name\":\"Updated Test Account\",\"email\":\"updated@example.com\"}"
+
+HTTP/1.1 200 OK
+Server: Werkzeug/2.1.2 Python/3.12.10
+Date: Sat, 31 Oct 2026 12:26:00 GMT
+Content-Type: application/json
+Content-Length: 74
+Connection: close
+
+{"email":"updated@example.com","id":"1001","name":"Updated Test Account"}

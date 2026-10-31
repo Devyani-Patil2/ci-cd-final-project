@@ -126,6 +126,25 @@ def update_account(account_id):
     return jsonify(ACCOUNTS[account_id]), status.HTTP_200_OK
 
 
+
+############################################################
+# Account DELETE endpoint
+############################################################
+@app.route("/accounts/<account_id>", methods=["DELETE"])
+def delete_account(account_id):
+    """Deletes an existing account"""
+    if account_id not in ACCOUNTS:
+        return abort(
+            status.HTTP_404_NOT_FOUND,
+            "Account does not exist",
+        )
+
+    ACCOUNTS.pop(account_id)
+
+    return "", status.HTTP_204_NO_CONTENT
+
+
+
 ############################################################
 # Existing Counter endpoints
 ############################################################

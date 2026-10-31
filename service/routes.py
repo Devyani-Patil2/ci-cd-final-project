@@ -10,20 +10,27 @@ COUNTER = {}
 ACCOUNTS = {}
 
 
+############################################################
+# Health Endpoint
+############################################################
 @app.route("/health")
 def health():
     """Health Status"""
     return jsonify(dict(status="OK")), status.HTTP_200_OK
 
 
+############################################################
+# Index page
+############################################################
 @app.route("/")
 def index():
     """Returns information about the service"""
+    app.logger.info("Request for Base URL")
     return jsonify(
         status=status.HTTP_200_OK,
         message="Accounts Service",
         version="1.0.0",
-        url=url_for("create_account", _external=True),
+        url=url_for("list_accounts", _external=True),
     )
 
 
@@ -51,22 +58,43 @@ def create_account():
         "name": account_data["name"],
         "email": account_data.get("email", ""),
     }
+
     ACCOUNTS[account_id] = account
 
     location_url = url_for(
         "read_account", account_id=account_id, _external=True
     )
-    return jsonify(account), status.HTTP_201_CREATED, {
-        "Location": location_url
-    }
+
+    return (
+        jsonify(account),
+        status.HTTP_201_CREATED,
+        {"Location": location_url},
+    )
 
 
+############################################################
+# Account LIST endpoint
+############################################################
+@app.route("/accounts", methods=["GET"])
+def list_accounts():
+    """Lists all accounts"""
+    accounts = list(ACCOUNTS.values())
+    return jsonify(accounts), status.HTTP_200_OK
+
+
+############################################################
+# Account READ endpoint
+############################################################
 @app.route("/accounts/<account_id>", methods=["GET"])
 def read_account(account_id):
-    """Reads an account"""
+    """Reads a single account"""
     if account_id not in ACCOUNTS:
-        return abort(status.HTTP_404_NOT_FOUND, "Account does not exist")
-    return jsonify(ACCOUNTS[account_id])
+        return abort(
+            status.HTTP_404_NOT_FOUND,
+            "Account does not exist",
+        )
+
+    return jsonify(ACCOUNTS[account_id]), status.HTTP_200_OK
 
 
 ############################################################
@@ -75,7 +103,10 @@ def read_account(account_id):
 @app.route("/counters", methods=["GET"])
 def list_counters():
     """Lists all counters"""
-    counters = [dict(name=count[0], counter=count[1]) for count in COUNTER.items()]
+    counters = [
+        dict(name=count[0], counter=count[1])
+        for count in COUNTER.items()
+    ]
     return jsonify(counters)
 
 
@@ -83,19 +114,33 @@ def list_counters():
 def create_counters(name):
     """Creates a new counter"""
     if name in COUNTER:
-        return abort(status.HTTP_409_CONFLICT, f"Counter {name} already exists")
+        return abort(
+            status.HTTP_409_CONFLICT,
+            f"Counter {name} already exists",
+        )
+
     COUNTER[name] = 0
-    location_url = url_for("read_counters", name=name, _external=True)
-    return jsonify(name=name, counter=0), status.HTTP_201_CREATED, {
-        "Location": location_url
-    }
+
+    location_url = url_for(
+        "read_counters", name=name, _external=True
+    )
+
+    return (
+        jsonify(name=name, counter=0),
+        status.HTTP_201_CREATED,
+        {"Location": location_url},
+    )
 
 
 @app.route("/counters/<name>", methods=["GET"])
 def read_counters(name):
     """Reads a single counter"""
     if name not in COUNTER:
-        return abort(status.HTTP_404_NOT_FOUND, f"Counter {name} does not exist")
+        return abort(
+            status.HTTP_404_NOT_FOUND,
+            f"Counter {name} does not exist",
+        )
+
     return jsonify(name=name, counter=COUNTER[name])
 
 
@@ -103,7 +148,11 @@ def read_counters(name):
 def update_counters(name):
     """Updates a counter"""
     if name not in COUNTER:
-        return abort(status.HTTP_404_NOT_FOUND, f"Counter {name} does not exist")
+        return abort(
+            status.HTTP_404_NOT_FOUND,
+            f"Counter {name} does not exist",
+        )
+
     COUNTER[name] += 1
     return jsonify(name=name, counter=COUNTER[name])
 
@@ -113,11 +162,17 @@ def delete_counters(name):
     """Deletes a counter"""
     if name in COUNTER:
         COUNTER.pop(name)
+
     return "", status.HTTP_204_NO_CONTENT
 
 
+############################################################
+# Utility for testing
+############################################################
 def reset_counters():
     """Removes all counters while testing"""
-    global COUNTER
+    global COUNTER  # pylint: disable=global-statement
+
     if app.testing:
         COUNTER = {}
+        ACCOUNTS.clear()

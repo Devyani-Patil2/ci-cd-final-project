@@ -1,9 +1,11 @@
+
 # Werkzeug keeps breaking Flask!
 Werkzeug==2.1.2
 
 # Runtime dependencies
 Flask==2.1.2
 python-dotenv==0.20.0
+flask-talisman==1.1.0
 
 # Runtime tools
 gunicorn==20.1.0

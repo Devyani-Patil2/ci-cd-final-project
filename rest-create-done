@@ -1,0 +1,17 @@
+Task 13: CREATE Account
+
+cURL Command:
+
+curl.exe -i -X POST http://127.0.0.1:5000/accounts -H "Content-Type: application/json" -d "{\"id\":\"1001\",\"name\":\"Test Account\",\"email\":\"test@example.com\"}"
+
+Output:
+
+HTTP/1.1 201 CREATED
+Server: Werkzeug/2.1.2 Python/3.12.10
+Date: Sat, 31 Oct 2026 12:10:26 GMT
+Content-Type: application/json
+Content-Length: 63
+Location: http://127.0.0.1:5000/accounts/1001
+Connection: close
+
+{"email":"test@example.com","id":"1001","name":"Test Account"}

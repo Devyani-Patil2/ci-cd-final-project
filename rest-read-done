@@ -1,0 +1,10 @@
+curl.exe -i -X GET http://127.0.0.1:5000/accounts/1001
+
+HTTP/1.1 200 OK
+Server: Werkzeug/2.1.2 Python/3.12.10
+Date: Sat, 31 Oct 2026 12:21:45 GMT
+Content-Type: application/json
+Content-Length: 63
+Connection: close
+
+{"email":"test@example.com","id":"1001","name":"Test Account"}

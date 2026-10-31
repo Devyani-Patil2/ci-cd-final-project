@@ -126,7 +126,6 @@ def update_account(account_id):
     return jsonify(ACCOUNTS[account_id]), status.HTTP_200_OK
 
 
-
 ############################################################
 # Account DELETE endpoint
 ############################################################
@@ -142,7 +141,6 @@ def delete_account(account_id):
     ACCOUNTS.pop(account_id)
 
     return "", status.HTTP_204_NO_CONTENT
-
 
 
 ############################################################

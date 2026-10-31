@@ -27,4 +27,4 @@ jobs:
 
       - name: Coverage with nosetests
         run: |
-          nosetests -v --with-spec --spec-color --with-coverage --cover-package=app
+          nosetests -v --with-spec --spec-color --with-coverage --cover-package=service

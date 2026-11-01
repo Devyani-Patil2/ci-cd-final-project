@@ -1,0 +1,52 @@
+
+name: Kubernetes Deploy
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: docker build -t accounts:latest .
+
+      - name: Create Kubernetes cluster
+        uses: helm/kind-action@v1.10.0
+
+      - name: Load Docker image into cluster
+        run: kind load docker-image accounts:latest
+
+      - name: Deploy application
+        run: kubectl apply -f kubernetes/deployment.yaml
+
+      - name: Wait for deployment
+        run: kubectl rollout status deployment/accounts --timeout=120s
+
+      - name: Save deployment details
+        run: |
+          echo "=== DEPLOYMENTS ===" > kube-deploy-accounts
+          kubectl get deployments -o wide >> kube-deploy-accounts
+          echo "" >> kube-deploy-accounts
+          echo "=== PODS ===" >> kube-deploy-accounts
+          kubectl get pods -o wide >> kube-deploy-accounts
+          echo "" >> kube-deploy-accounts
+          echo "=== REPLICASETS ===" >> kube-deploy-accounts
+          kubectl get replicasets -o wide >> kube-deploy-accounts
+          echo "" >> kube-deploy-accounts
+          echo "=== SERVICES ===" >> kube-deploy-accounts
+          kubectl get services -o wide >> kube-deploy-accounts
+          cat kube-deploy-accounts
+
+      - name: Upload deployment output
+        uses: actions/upload-artifact@v4
+        with:
+          name: kube-deploy-accounts
+          path: kube-deploy-accounts

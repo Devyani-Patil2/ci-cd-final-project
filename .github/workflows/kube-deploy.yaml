@@ -20,9 +20,11 @@ jobs:
 
       - name: Create Kubernetes cluster
         uses: helm/kind-action@v1.10.0
+        with:
+          cluster_name: kind
 
       - name: Load Docker image into cluster
-        run: kind load docker-image accounts:latest
+        run: kind load docker-image accounts:latest --name kind
 
       - name: Deploy application
         run: kubectl apply -f kubernetes/deployment.yaml

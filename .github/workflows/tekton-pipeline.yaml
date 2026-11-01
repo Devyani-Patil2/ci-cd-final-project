@@ -1,0 +1,132 @@
+
+name: Tekton Pipeline Run
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  tekton:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Create Kubernetes cluster
+        uses: helm/kind-action@v1.10.0
+        with:
+          cluster_name: kind
+
+      - name: Install Tekton Pipelines
+        run: |
+          kubectl apply --filename https://storage.googleapis.com/tekton-releases/pipeline/latest/release.yaml
+          kubectl rollout status deployment/tekton-pipelines-controller -n tekton-pipelines --timeout=5m
+          kubectl rollout status deployment/tekton-pipelines-webhook -n tekton-pipelines --timeout=5m
+
+      - name: Create and run Tekton Pipeline
+        run: |
+          kubectl apply -f .tekton/tasks.yml
+
+          cat <<'EOF' | kubectl apply -f -
+          apiVersion: tekton.dev/v1
+          kind: Task
+          metadata:
+            name: clone-repo
+          spec:
+            workspaces:
+              - name: source
+            steps:
+              - name: clone
+                image: alpine/git
+                workingDir: $(workspaces.source.path)
+                script: |
+                  #!/bin/sh
+                  set -eu
+                  git clone --depth 1 https://github.com/Devyani-Patil2/ci-cd-final-project.git .
+          ---
+          apiVersion: tekton.dev/v1
+          kind: Pipeline
+          metadata:
+            name: accounts-pipeline
+          spec:
+            workspaces:
+              - name: source
+            tasks:
+              - name: cleanup
+                taskRef:
+                  name: cleanup
+                workspaces:
+                  - name: source
+                    workspace: source
+
+              - name: clone
+                runAfter:
+                  - cleanup
+                taskRef:
+                  name: clone-repo
+                workspaces:
+                  - name: source
+                    workspace: source
+
+              - name: tests
+                runAfter:
+                  - clone
+                taskRef:
+                  name: nose
+                workspaces:
+                  - name: source
+                    workspace: source
+          ---
+          apiVersion: tekton.dev/v1
+          kind: PipelineRun
+          metadata:
+            name: accounts-pipeline-run
+          spec:
+            pipelineRef:
+              name: accounts-pipeline
+            workspaces:
+              - name: source
+                emptyDir: {}
+          EOF
+
+          kubectl wait --for=condition=Succeeded pipelinerun/accounts-pipeline-run --timeout=15m || true
+
+      - name: Save complete Tekton PipelineRun logs
+        if: always()
+        run: |
+          {
+            echo "===== TEKTON PIPELINE RUN ====="
+            kubectl get pipelinerun accounts-pipeline-run -o yaml || true
+
+            echo ""
+            echo "===== PIPELINE RUN DESCRIPTION ====="
+            kubectl describe pipelinerun accounts-pipeline-run || true
+
+            echo ""
+            echo "===== TASK RUNS ====="
+            kubectl get taskruns -o wide || true
+
+            echo ""
+            echo "===== TASK PODS ====="
+            kubectl get pods -l tekton.dev/pipelineRun=accounts-pipeline-run -o wide || true
+
+            echo ""
+            echo "===== TASK POD LOGS ====="
+            for pod in $(kubectl get pods -l tekton.dev/pipelineRun=accounts-pipeline-run -o name 2>/dev/null); do
+              echo ""
+              echo "----- $pod -----"
+              kubectl logs "$pod" --all-containers=true --prefix=true || true
+            done
+          } > pipelinerun.txt 2>&1
+
+          cat pipelinerun.txt
+
+      - name: Upload pipelinerun.txt
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pipelinerun
+          path: pipelinerun.txt

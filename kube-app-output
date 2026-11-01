@@ -1,0 +1,6 @@
+{
+    "message": "Accounts Service",
+    "status": 200,
+    "url": "http://127.0.0.1:8080/accounts",
+    "version": "1.0.0"
+}

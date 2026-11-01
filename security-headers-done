@@ -1,0 +1,24 @@
+test_create_counters (test_routes.CounterTest.test_create_counters)
+It should Create a counter ... ok
+test_create_duplicate_counter (test_routes.CounterTest.test_create_duplicate_counter)
+It should not Create a duplicate counter ... ok
+test_delete_counters (test_routes.CounterTest.test_delete_counters)
+It should Delete a counter ... ok
+test_health (test_routes.CounterTest.test_health)
+It should be healthy ... ok
+test_index (test_routes.CounterTest.test_index)
+It should call the index call ... ok
+test_list_counters (test_routes.CounterTest.test_list_counters)
+It should List counters ... ok
+test_read_counters (test_routes.CounterTest.test_read_counters)
+It should Read a counter ... ok
+test_update_counters (test_routes.CounterTest.test_update_counters)
+It should Update a counter ... ok
+test_update_missing_counters (test_routes.CounterTest.test_update_missing_counters)
+It should not Update a missing counter ... ok
+
+----------------------------------------------------------------------
+Ran 9 tests in 0.068s
+
+OK
+{'counter': 0, 'name': 'foo'}

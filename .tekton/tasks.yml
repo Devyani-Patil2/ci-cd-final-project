@@ -1,3 +1,4 @@
+
 apiVersion: tekton.dev/v1beta1
 kind: Task
 metadata:
@@ -36,6 +37,22 @@ spec:
       script: |
         #!/bin/bash
         set -e
+
+        echo "===== CHECK WORKSPACE FILES ====="
+        pwd
+        ls -la
+
+        echo "===== CHECK REQUIREMENTS FILE ====="
+        find . -name requirements.txt
+
+        if [ ! -f requirements.txt ]; then
+          echo "ERROR: requirements.txt not found in workspace root"
+          exit 1
+        fi
+
+        echo "===== INSTALL DEPENDENCIES ====="
         python -m pip install --upgrade pip wheel
         pip install -r requirements.txt
+
+        echo "===== RUN TESTS ====="
         nosetests $(params.args)
